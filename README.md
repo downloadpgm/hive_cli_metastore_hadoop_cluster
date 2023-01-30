@@ -1,0 +1,2 @@
+# hive_cli_metastore_hadoop_cluster
+hive_cli_metastore_hadoop_cluster
