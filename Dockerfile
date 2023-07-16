@@ -5,17 +5,17 @@ FROM mkenjis/ubhdpclu_vol_img
 
 WORKDIR /usr/local
 
-# wget http://archive.apache.org/dist/hive/hive-2.1.0/apache-hive-2.1.0-bin.tar.gz
-ADD apache-hive-2.1.0-bin.tar.gz .
+# wget https://archive.apache.org/dist/hive/hive-1.2.1/apache-hive-1.2.1-bin.tar.gz
+ADD apache-hive-1.2.1-bin.tar.gz .
 
-WORKDIR /usr/local/apache-hive-2.1.0-bin
+WORKDIR /usr/local/apache-hive-1.2.1-bin
 COPY hive-env.sh conf/hive-env.sh
 COPY hive-site.xml conf/hive-site.xml
 COPY mysql_mysql-connector-java-5.1.49.jar lib/mysql_mysql-connector-java-5.1.49.jar
 
 WORKDIR /root
 RUN echo "" >>.bashrc \
- && echo 'export HIVE_HOME=/usr/local/apache-hive-2.1.0-bin' >>.bashrc \
+ && echo 'export HIVE_HOME=/usr/local/apache-hive-1.2.1-bin' >>.bashrc \
  && echo 'export PATH=$PATH:$HIVE_HOME/bin' >>.bashrc
  
 COPY run_hive.sh .

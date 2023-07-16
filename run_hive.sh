@@ -7,7 +7,7 @@ export PATH=$PATH:.:$JAVA_HOME/bin
 export HADOOP_HOME=/usr/local/hadoop-2.7.3
 export HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
 
-export HIVE_HOME=/usr/local/apache-hive-2.1.0-bin
+export HIVE_HOME=/usr/local/apache-hive-1.2.1-bin
 export PATH=$PATH:$HIVE_HOME/bin
 
 # create_conf_files.sh
