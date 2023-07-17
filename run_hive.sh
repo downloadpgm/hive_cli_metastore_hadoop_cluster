@@ -16,15 +16,3 @@ service ssh start
 
 echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
 ssh-keyscan ${HOSTNAME} >~/.ssh/known_hosts
-
-
-if [ -n "${HADOOP_HOST_MASTER}" ]; then
-
-   sleep 30
-   ssh-keyscan ${HADOOP_HOST_MASTER} >>~/.ssh/known_hosts
-   scp root@${HADOOP_HOST_MASTER}:${HADOOP_CONF_DIR}/core-site.xml   ${HADOOP_CONF_DIR}/core-site.xml
-   scp root@${HADOOP_HOST_MASTER}:${HADOOP_CONF_DIR}/hadoop-env.sh   ${HADOOP_CONF_DIR}/hadoop-env.sh
-   scp root@${HADOOP_HOST_MASTER}:${HADOOP_CONF_DIR}/hdfs-site.xml   ${HADOOP_CONF_DIR}/hdfs-site.xml
-   scp root@${HADOOP_HOST_MASTER}:${HADOOP_CONF_DIR}/mapred-site.xml ${HADOOP_CONF_DIR}/mapred-site.xml
-
-fi
