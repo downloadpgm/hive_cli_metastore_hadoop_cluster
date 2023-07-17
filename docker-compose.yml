@@ -1,12 +1,14 @@
 version: "3.1"
 
 services:
-  hive:
+  hdpmst:
     image: mkenjis/ubhive_img
+    deploy:
+      placement:
+        constraints:
+          - node.labels.hostlabel == hdpmst
     networks:
       - mynet
-    environment:
-      - HADOOP_HOST_MASTER=hdpmst
 
   mysql:
     image: mysql:5.7
@@ -24,6 +26,15 @@ services:
     volumes:
       - .:/root/staging
       - db:/var/lib/mysql
+
+  spk_cli:
+    image: mkenjis/ubspkcli_yarn_img
+    deploy:
+      placement:
+        constraints:
+          - node.labels.hostlabel == hdp2
+    networks:
+      - mynet
 
 networks:
   mynet:

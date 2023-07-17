@@ -1,4 +1,4 @@
-# Spark client running into YARN cluster in Docker
+# Hive client running into Hadoop cluster in Docker
 
 Apache Spark is an open-source, distributed processing system used for big data workloads.
 
@@ -35,22 +35,14 @@ docker node update --label-add hostlabel=hdp3 node4
 docker network create --driver overlay mynet
 ```
 
-5. start the Hadoop cluster (with HDFS and YARN)
-```shell
-$ docker stack deploy -c docker-compose-hdp.yml hdp
-$ docker stack ps hdp
-jeti90luyqrb   hdp_hdp1.1     mkenjis/ubhdpclu_vol_img:latest   node2     Running         Preparing 39 seconds ago             
-tosjcz96hnj9   hdp_hdp2.1     mkenjis/ubhdpclu_vol_img:latest   node3     Running         Preparing 38 seconds ago             
-t2ooig7fbt9y   hdp_hdp3.1     mkenjis/ubhdpclu_vol_img:latest   node4     Running         Preparing 39 seconds ago             
-wym7psnwca4n   hdp_hdpmst.1   mkenjis/ubhdpclu_vol_img:latest   node1     Running         Preparing 39 seconds ago
-```
-
-4. start spark client and mysql server
+5. start hive client with hadoop standalone server, spark client and mysql server
 ```shell
 $ docker stack deploy -c docker-compose.yml spk
 $ docker service ls
-ID             NAME          MODE         REPLICAS   IMAGE                                 PORTS
-xf8qop5183mj   spk_spk_cli   replicated   0/1        mkenjis/ubspkcli_yarn_img:latest
+ID             NAME          MODE         REPLICAS   IMAGE                              PORTS
+kbdg1lfzcrr6   spk_hdpmst    replicated   1/1        mkenjis/ubhive_img:latest          
+l1pdt972ep82   spk_mysql     replicated   1/1        mysql:5.7                          
+o5gzr0yowk60   spk_spk_cli   replicated   1/1        mkenjis/ubspkcli_yarn_img:latest
 ```
 
 ## Set up MySQL server
@@ -68,24 +60,33 @@ mysql -uroot -p metastore < hive-schema-1.2.0.mysql.sql
 Enter password:
 ```
 
+## Upload a datafile into HDFS server
+
+1. access hadoop standalone server and load a datafile.
+```shell
+hdfs dfs -mkdir /data
+hdfs dfs -put housing.data /data
+hdfs dfs -ls /data
+```
+
 ## Set up Spark client
 
 1. access spark client node
 ```shell
-$ docker container ls   # run it in each node and check which <container ID> is running the Spark client constainer
-CONTAINER ID   IMAGE                                 COMMAND                  CREATED         STATUS         PORTS                                          NAMES
-8f0eeca49d0f   mkenjis/ubspkcli_yarn_img:latest   "/usr/bin/supervisord"   3 minutes ago   Up 3 minutes   4040/tcp, 7077/tcp, 8080-8082/tcp, 10000/tcp   yarn_spk_cli.1.npllgerwuixwnb9odb3z97tuh
-e9ceb97de97a   mkenjis/ubhdpclu_vol_img:latest           "/usr/bin/supervisord"   4 minutes ago   Up 4 minutes   9000/tcp                                       yarn_hdp1.1.58koqncyw79aaqhirapg502os
-
 $ docker container exec -it <spk_cli ID> bash
-
 ```
 
-2. copy hive-site.xml into $SPARK_HOME/conf
+2. copy following file into $SPARK_HOME/conf
+```shell
+$ cd $SPARK_HOME/conf
+$ scp root@<hdpmst>:/usr/local/hadoop-2.7.3/etc/hadoop/core-site.xml .
+$ scp root@<hdpmst>:/usr/local/hadoop-2.7.3/etc/hadoop/hdfs-site.xml .
+$ # create hive-site.xml with settings provided
+```
 
 3. start spark-shell installing mysql jar files
 ```shell
-$ spark-shell --packages mysql:mysql-connector-java:5.1.49 --master yarn --num-executors 4
+$ spark-shell --packages mysql:mysql-connector-java:5.1.49
 2021-12-05 11:09:14 WARN  NativeCodeLoader:62 - Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
 Setting default log level to "WARN".
 To adjust logging level use sc.setLogLevel(newLevel). For SparkR, use setLogLevel(newLevel).
@@ -107,4 +108,35 @@ Type :help for more information.
 scala> 
 ```
 
+4. create a persistent table in metastore
+```shell
+scala> val df = spark.read.option("inferSchema","true").csv("hdfs://hdpmst:9000/data/housing.data").toDF("CRIM","ZN","INDUS","CHAS","NOX","RM","AGE","DIS","RAD","TAX","PTRATIO","B","LSTAT","MEDV")
+scala> df.show
+scala> df.write.saveAsTable("housing")
+scala> 
+```
 
+## Set up Hive client
+
+1. access hive client node
+```shell
+$ docker container exec -it <hive_cli ID> bash
+```
+
+2. copy following file into $HIVE_HOME/conf
+```shell
+$ cd $HIVE_HOME/conf
+$ # create hive-site.xml with settings provided
+```
+
+3. start hive CLI
+```shell
+$ cd ~
+$ hive
+
+Logging initialized using configuration in jar:file:/usr/local/apache-hive-1.2.1-bin/lib/hive-common-1.2.1.jar!/hive-log4j.properties
+hive> show tables;
+OK
+housing
+Time taken: 1.217 seconds, Fetched: 1 row(s)
+```
