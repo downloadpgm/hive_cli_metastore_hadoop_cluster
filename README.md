@@ -1,10 +1,14 @@
-# Hive client running into Hadoop cluster in Docker
+# Hive client running into Spark/Hadoop cluster in Docker
+
+Apache Hadoop is an open-source, distributing filesystem across clusters of commodity computers. 
 
 Apache Spark is an open-source, distributed processing system used for big data workloads.
 
-In this demo, a Spark container uses a Hadoop YARN cluster as a resource management and job scheduling technology to perform distributed data processing.
+Apache Hive is a distributed, fault-tolerant data warehouse system that enables analytics at a massive scale over Hadoop.
 
-This Docker image contains Spark binaries prebuilt and uploaded in Docker Hub.
+In this demo, Hive client access a metastore in Mysql populated by Spark client container. Whole process is backed by Hadoop distributed filesystem (HDFS) to store the tables.
+
+This Docker image contains Hive binaries prebuilt and uploaded in Docker Hub.
 
 Spark client access a remote Hive metastore created in a MySQL Server for Spark catalog.
 
@@ -55,7 +59,7 @@ tar -xzf apache-hive-1.2.1-bin.tar.gz
 
 2. access mysql server node and run hive script to create metastore tables
 ```shell
-/root/staging/apache-hive-1.2.1-bin/scripts/metastore/upgrade/mysql
+cd /root/staging/apache-hive-1.2.1-bin/scripts/metastore/upgrade/mysql
 mysql -uroot -p metastore < hive-schema-1.2.0.mysql.sql
 Enter password:
 ```
@@ -63,6 +67,10 @@ Enter password:
 ## Upload a datafile into HDFS server
 
 1. access hadoop standalone server and load a datafile.
+```shell
+$ docker container exec -it <hive_cli ID> bash
+```
+
 ```shell
 hdfs dfs -mkdir /data
 hdfs dfs -put housing.data /data
@@ -76,7 +84,7 @@ hdfs dfs -ls /data
 $ docker container exec -it <spk_cli ID> bash
 ```
 
-2. copy following file into $SPARK_HOME/conf
+2. copy following files into $SPARK_HOME/conf
 ```shell
 $ cd $SPARK_HOME/conf
 $ scp root@<hdpmst>:/usr/local/hadoop-2.7.3/etc/hadoop/core-site.xml .
@@ -108,11 +116,15 @@ Type :help for more information.
 scala> 
 ```
 
-4. create a persistent table in metastore
+4. create a persistent tables in metastore
 ```shell
-scala> val df = spark.read.option("inferSchema","true").csv("hdfs://hdpmst:9000/data/housing.data").toDF("CRIM","ZN","INDUS","CHAS","NOX","RM","AGE","DIS","RAD","TAX","PTRATIO","B","LSTAT","MEDV")
+scala> val df = spark.read.option("inferSchema","true").csv("hdfs://hdpmst:9000/data/housing.data").
+                toDF("CRIM","ZN","INDUS","CHAS","NOX","RM","AGE","DIS","RAD","TAX","PTRATIO","B","LSTAT","MEDV")
 scala> df.show
 scala> df.write.saveAsTable("housing")
+scala> df.write.format("csv").saveAsTable("housing_csv")
+scala> df.write.format("json").saveAsTable("housing_json")
+scala> df.write.format("orc").saveAsTable("housing_orc")
 scala> 
 ```
 
@@ -126,7 +138,7 @@ $ docker container exec -it <hive_cli ID> bash
 2. copy following file into $HIVE_HOME/conf
 ```shell
 $ cd $HIVE_HOME/conf
-$ # create hive-site.xml with settings provided
+$ # create hive-site.xml with settings provided. replace hdpmst hostname to physical hostname
 ```
 
 3. start hive CLI
