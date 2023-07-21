@@ -1,0 +1,36 @@
+create external table housing_ext(
+crim   double,
+zn     double,
+indus  double,
+chas   double,
+nox    double,
+rm     double,
+age    double,
+dis    double,
+rad    double,
+tax    double,
+ptratio double,
+b      double,
+lstat  double,
+medv   double)
+row format delimited
+fields terminated by ','
+stored as textfile
+location 'hdfs://ce8399aa035c:9000/data/';
+
+
+create table housing_imp(
+crim   double,
+zn     double,
+indus  double,
+chas   double,
+nox    double,
+rm     double,
+age    double,
+dis    double,
+rad    double,
+tax    double,
+ptratio double,
+b      double,
+lstat  double,
+medv   double)

@@ -89,7 +89,7 @@ $ docker container exec -it <spk_cli ID> bash
 $ cd $SPARK_HOME/conf
 $ scp root@<hdpmst>:/usr/local/hadoop-2.7.3/etc/hadoop/core-site.xml .
 $ scp root@<hdpmst>:/usr/local/hadoop-2.7.3/etc/hadoop/hdfs-site.xml .
-$ # create hive-site.xml with settings provided
+$ # create hive-site.xml with settings provided. NOTE: replace hdpmst hostname to physical hostname
 ```
 
 3. start spark-shell installing mysql jar files
@@ -118,11 +118,11 @@ scala>
 
 4. create a persistent tables in metastore
 ```shell
-scala> val df = spark.read.option("inferSchema","true").csv("hdfs://hdpmst:9000/data/housing.data").
+scala> val df = spark.read.option("inferSchema","true").csv("hdfs://<hive host_name>t:9000/data/housing.data").
                 toDF("CRIM","ZN","INDUS","CHAS","NOX","RM","AGE","DIS","RAD","TAX","PTRATIO","B","LSTAT","MEDV")
 scala> df.show
 scala> df.write.saveAsTable("housing")
-scala> df.write.format("csv").saveAsTable("housing_csv")
+scala> df.write.option("header","true").format("csv").saveAsTable("housing_csv")
 scala> df.write.format("json").saveAsTable("housing_json")
 scala> df.write.format("orc").saveAsTable("housing_orc")
 scala> 
@@ -138,7 +138,7 @@ $ docker container exec -it <hive_cli ID> bash
 2. copy following file into $HIVE_HOME/conf
 ```shell
 $ cd $HIVE_HOME/conf
-$ # create hive-site.xml with settings provided. replace hdpmst hostname to physical hostname
+$ # create hive-site.xml with settings provided. NOTE: replace hdpmst hostname to physical hostname
 ```
 
 3. start hive CLI
