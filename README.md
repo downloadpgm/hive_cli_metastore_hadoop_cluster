@@ -118,7 +118,7 @@ scala>
 
 4. create a persistent tables in metastore
 ```shell
-scala> val df = spark.read.option("inferSchema","true").csv("hdfs://<hive host_name>t:9000/data/housing.data").
+scala> val df = spark.read.option("inferSchema","true").csv("hdfs://<hive host_name>:9000/data/housing.data").
                 toDF("CRIM","ZN","INDUS","CHAS","NOX","RM","AGE","DIS","RAD","TAX","PTRATIO","B","LSTAT","MEDV")
 scala> df.show
 scala> df.write.saveAsTable("housing")
