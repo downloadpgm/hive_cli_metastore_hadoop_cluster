@@ -57,7 +57,7 @@ wget https://archive.apache.org/dist/hive/hive-1.2.1/apache-hive-1.2.1-bin.tar.g
 tar -xzf apache-hive-1.2.1-bin.tar.gz
 ```
 
-2. access mysql server node and run hive script to create metastore tables
+2. in mysql server node, run hive script to create metastore tables
 ```shell
 cd /root/staging/apache-hive-1.2.1-bin/scripts/metastore/upgrade/mysql
 mysql -uroot -p metastore < hive-schema-1.2.0.mysql.sql
@@ -66,7 +66,7 @@ Enter password:
 
 ## Upload a datafile into HDFS server
 
-1. access hadoop standalone server and load a datafile.
+1. in hadoop standalone server, load a datafile.
 ```shell
 $ docker container exec -it <hive_cli ID> bash
 ```
@@ -79,12 +79,11 @@ hdfs dfs -ls /data
 
 ## Set up Spark client
 
-1. access spark client node
+1. in spark client node, copy following files into $SPARK_HOME/conf
 ```shell
 $ docker container exec -it <spk_cli ID> bash
 ```
 
-2. copy following files into $SPARK_HOME/conf
 ```shell
 $ cd $SPARK_HOME/conf
 $ scp root@<hdpmst>:/usr/local/hadoop-2.7.3/etc/hadoop/core-site.xml .
@@ -92,7 +91,7 @@ $ scp root@<hdpmst>:/usr/local/hadoop-2.7.3/etc/hadoop/hdfs-site.xml .
 $ # create hive-site.xml with settings provided. NOTE: replace hdpmst hostname to physical hostname
 ```
 
-3. start spark-shell installing mysql jar files
+2. start spark-shell installing mysql jar files
 ```shell
 $ spark-shell --packages mysql:mysql-connector-java:5.1.49
 2021-12-05 11:09:14 WARN  NativeCodeLoader:62 - Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
@@ -116,7 +115,7 @@ Type :help for more information.
 scala> 
 ```
 
-4. create a persistent tables in metastore
+3. create a persistent tables in metastore
 ```shell
 scala> val df = spark.read.option("inferSchema","true").csv("hdfs://<hive host_name>:9000/data/housing.data").
                 toDF("CRIM","ZN","INDUS","CHAS","NOX","RM","AGE","DIS","RAD","TAX","PTRATIO","B","LSTAT","MEDV")
@@ -130,18 +129,17 @@ scala>
 
 ## Set up Hive client
 
-1. access hive client node
+1. in hive client node, copy following file into $HIVE_HOME/conf
 ```shell
 $ docker container exec -it <hive_cli ID> bash
 ```
 
-2. copy following file into $HIVE_HOME/conf
 ```shell
 $ cd $HIVE_HOME/conf
 $ # create hive-site.xml with settings provided. NOTE: replace hdpmst hostname to physical hostname
 ```
 
-3. start hive CLI
+2. start hive CLI
 ```shell
 $ cd ~
 $ hive
