@@ -35,6 +35,8 @@ services:
           - node.labels.hostlabel == hdp2
     networks:
       - mynet
+    environment:
+      - HADOOP_HOST_MASTER=hdpmst
 
 networks:
   mynet:
