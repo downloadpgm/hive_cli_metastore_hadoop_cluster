@@ -37,6 +37,8 @@ services:
       - mynet
     environment:
       - HADOOP_HOST_MASTER=hdpmst
+    ports:
+      - 4040:4040
 
 networks:
   mynet:
